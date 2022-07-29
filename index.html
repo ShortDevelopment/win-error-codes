@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script type="module">
+        import {
+            fluentButton,
+            fluentCard,
+            fluentDataGridCell,
+            fluentDataGridRow,
+            fluentDataGrid,
+            provideFluentDesignSystem,
+            DataGrid,
+            TextField,
+            Progress
+        } from "https://unpkg.com/@fluentui/web-components";
+
+        provideFluentDesignSystem().register(
+            fluentButton(),
+            fluentCard(),
+            fluentDataGridCell(),
+            fluentDataGridRow(),
+            fluentDataGrid()
+        );
+
+        /** @type {DataGrid} */
+        let resultGrid;
+        /** @type {TextField} */
+        let searchTextField;
+        /** @type {Progress} */
+        let progressIndicator;
+
+        import data from './db/index.js';
+        window.addEventListener("load", () => {
+            searchTextField = /** @type {TextField} */(document.getElementById("searchTextField"));
+            progressIndicator = /** @type {Progress} */(document.getElementById("progressIndicator"));
+            resultGrid = /** @type {DataGrid} */(document.getElementById("resultGrid"));
+            LoadAll();
+        });
+
+        function LoadAll() {
+            requestAnimationFrame((x) => {
+                progressIndicator.style.visibility = "visible";
+            });
+
+            let rowsData = [];
+            for (const [key, value] of /** @type {[string, IErrorCodeInfo[]][]} */(Object.entries(data))) {
+                rowsData = rowsData.concat(value);
+            }
+            resultGrid.rowsData = rowsData;
+            progressIndicator.style.visibility = "hidden";
+        }
+
+        /**
+         *
+         * @param {number} code
+         * @returns {IErrorCodeInfo?}
+         */
+        function SearchCode(code) {
+            for (const [key, value] of /** @type {[string, IErrorCodeInfo[]][]} */(Object.entries(data))) {
+                const result = value.filter((x) => parseInt(x.code, 16) == code)[0];
+                if (result)
+                    return result;
+            }
+            return null;
+        }
+
+        /** @type {() => void} */
+        window.SearchButton_Click = () => {
+            const codeStr = searchTextField.value;
+
+            /** @type {IErrorCodeInfo?} */
+            let result = null;
+            if (codeStr.startsWith("0x")) {
+                result = SearchCode(parseInt(codeStr, 16));
+            } else {
+                result = SearchCode(parseInt(codeStr, 10));
+            }
+
+            if (result) {
+                resultGrid.rowsData = [result];
+            } else {
+                resultGrid.rowsData = [];
+            }
+            console.log({ result });
+        }
+    </script>
+</head>
+
+<body>
+    <div style="display: flex; flex-direction: row; justify-content: center;">
+        <fluent-text-field id="searchTextField" appearance="outline" placeholder="0x00000000"></fluent-text-field>
+        <fluent-button appearance="accent" style="margin-left: 10px;" onclick="SearchButton_Click();">Search</fluent-button>
+    </div>
+    <fluent-progress id="progressIndicator" style="margin: 20px 0px; visibility: hidden;"></fluent-progress>
+
+    <fluent-data-grid id="resultGrid" style="max-height: 30em; overflow-y: auto;">
+    </fluent-data-grid>
+</body>
+
+</html>

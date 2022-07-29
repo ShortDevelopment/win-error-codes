@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "https://unpkg.com/*": [ "./node_modules/*" ]
+    },
+    "checkJs": true,
+    "lib": [ "ES2022", "DOM"]
+  }
+}
